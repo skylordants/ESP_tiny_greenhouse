@@ -5,12 +5,14 @@
 #include "esp_log.h"
 
 #include "soil_moisture.h"
+#include "water_level.h"
 
 void stuff (void *pvParameter) {
 	CapacitiveMoistureSensor soil {ADC_UNIT_1, ADC_CHANNEL_3};
+	WaterLevelSensor water {6, 0};
 
 	while (true) {
-		soil.measure();
+		printf("Water Empty: %i\n", water.IsEmpty());
 		vTaskDelay(pdMS_TO_TICKS(100));
 	}
 }
