@@ -1,3 +1,7 @@
+// https://github.com/espressif/esp-idf/blob/master/examples/peripherals/adc/oneshot_read/main/oneshot_read_main.c
+// https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/api-reference/peripherals/adc_oneshot.html
+// https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/api-reference/peripherals/adc_calibration.html
+
 #include "soil_moisture.h"
 #include "esp_log.h"
 
@@ -58,7 +62,7 @@ bool CapacitiveMoistureSensor::adc_calibration_deinit() {
 
 bool CapacitiveMoistureSensor::measure() {
 	ESP_ERROR_CHECK(adc_oneshot_read(_adc_handle, _channel, &_adc_raw[0]));
-	ESP_LOGI(TAG, "ADC%d Channel[%d] Raw Data: %d", _init_config.unit_id + 1, _channel, _adc_raw[0]);
+	//ESP_LOGI(TAG, "ADC%d Channel[%d] Raw Data: %d", _init_config.unit_id + 1, _channel, _adc_raw[0]);
 	if (_do_calibration) {
 		ESP_ERROR_CHECK(adc_cali_raw_to_voltage(_adc_cali_handle, _adc_raw[0], &_voltage[0]));
 		ESP_LOGI(TAG, "ADC%d Channel[%d] Cali Voltage: %d mV", _init_config.unit_id + 1, _channel, _voltage[0]);

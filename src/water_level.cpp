@@ -1,3 +1,6 @@
+// https://github.com/espressif/esp-idf/blob/af805df3cb6117cc74f0875831fbab6446824453/examples/peripherals/gpio/generic_gpio/main/gpio_example_main.c
+// https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/api-reference/peripherals/gpio.html#_CPPv410gpio_num_t
+
 #include "water_level.h"
 
 
