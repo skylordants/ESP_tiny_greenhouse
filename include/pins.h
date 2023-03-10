@@ -1,0 +1,17 @@
+#ifndef __PINS_H__
+#define __PINS_H__
+
+#include "esp_adc\adc_oneshot.h"
+
+#define SOIL_MOISTURE_SENSOR_AOUT 9
+#define SOIL_MOISTURE_SENSOR_ADC_UNIT ADC_UNIT_1
+#define SOIL_MOISTURE_SENSOR_ADC_CHANNEL ADC_CHANNEL_8
+
+#define WATER_LEVEL_SENSOR_PIN 15
+#define WATER_LEVEL_EMPTY_LEVEL 1
+
+#define PUMP_CONTROL_PIN 6
+
+#define RELAY_CONTROL_PIN 12
+
+#endif
