@@ -25,6 +25,9 @@ private:
 	static void main_loop(void *pvParameter);
 
 	void report();
+
+	void report_int(int value, const char *topic);
+
 	void control_led();
 	void control_pump();
 };

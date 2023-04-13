@@ -58,20 +58,16 @@ void GreenhouseController::report() {
 	_soil_moisture.measure();
 
 	// Report all sensor and switch states
-	char buf[64];
-	sprintf(buf, "%d", _soil_moisture.getVoltage());
-	mqtt_publish("greenhouse/soil_moisture", buf, 1);
+	report_int(_soil_moisture.getVoltage(), "greenhouse/measurements/soil_moisture");
+	report_int(_water_level.IsFull(), "greenhouse/measurements/water");
+	report_int(_pump.is_on(), "greenhouse/measurements/pump");
+	report_int(_led_relay.is_on(), "greenhouse/measurements/led");
 
-	sprintf(buf, "%d", _water_level.IsFull());
-	mqtt_publish("greenhouse/water", buf, 1);
 
-	sprintf(buf, "%d", _pump.is_on());
-	mqtt_publish("greenhouse/pump", buf, 1);
 
-	sprintf(buf, "%d", _led_relay.is_on());
-	mqtt_publish("greenhouse/led", buf, 1);
 
 	// Report time
+	char buf[64];
 	time_t now;
     struct tm timeinfo;
 	time(&now);
@@ -79,6 +75,12 @@ void GreenhouseController::report() {
 	strftime(buf, sizeof(buf), "%c", &timeinfo);
 
 	mqtt_publish("greenhouse/report_time", buf, 1);
+}
+
+void GreenhouseController::report_int(int value, const char *topic) {
+	char buf[10];
+	sprintf(buf, "%d", value);
+	mqtt_publish(topic, buf, 1);
 }
 
 void GreenhouseController::control_led() {
