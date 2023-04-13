@@ -10,39 +10,22 @@
 #include "soil_moisture.h"
 #include "water_level.h"
 #include "networking.h"
+#include "greenhouse_controller.h"
 
-#include "time.h"
+GreenhouseController *greenhouse;
 
-void stuff (void *pvParameter) {
-	CapacitiveMoistureSensor soil {SOIL_MOISTURE_SENSOR_ADC_UNIT, SOIL_MOISTURE_SENSOR_ADC_CHANNEL};
-	WaterLevelSensor water {WATER_LEVEL_SENSOR_PIN, WATER_LEVEL_EMPTY_LEVEL};
-
-	Switch pump {PUMP_CONTROL_PIN};
-	Switch relay {RELAY_CONTROL_PIN};
+void init (void *pvParameter) {
 
 	init_networking();
 	init_wifi();
 	init_sntp();
+	init_mqtt();
 
-	time_t now;
-    struct tm timeinfo;
-	char strftime_buf[64];
+	greenhouse = new GreenhouseController();
 
-
-	while (true) {
-		time(&now);
-		localtime_r(&now, &timeinfo);
-		strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
-		printf("Time: %s\n", strftime_buf);
-		printf("Water Empty: %i\n", water.IsEmpty());
-		soil.measure();
-		relay.turn_on();
-		vTaskDelay(pdMS_TO_TICKS(500));
-		relay.turn_off();
-		vTaskDelay(pdMS_TO_TICKS(500));
-	}
+	vTaskDelete(NULL);
 }
 
 extern "C" void app_main() {
-	xTaskCreate(&stuff, "stuff", 8192, NULL, 5, NULL);
+	xTaskCreate(&init, "init", 8192, NULL, 5, NULL);
 }

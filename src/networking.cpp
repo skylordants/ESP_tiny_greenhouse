@@ -43,7 +43,11 @@
 #define MQTT_USER "greenhouse"
 #define MQTT_PASS "greenhouse"
 
+static const char GREENHOUSE_CONTROL_TOPIC[] = "greenhouse/control";
+
 static const char *TAG = "NETWORKING";
+
+static GreenhouseController *_gc;
 
 void init_networking() {
 	ESP_ERROR_CHECK( nvs_flash_init() );
@@ -182,6 +186,22 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 	case MQTT_EVENT_DATA:
 		//ESP_LOGI(TAG, "MQTT_EVENT_DATA");
 
+		// Greenhouse control data
+		if (strncmp(event->topic, GREENHOUSE_CONTROL_TOPIC, sizeof(GREENHOUSE_CONTROL_TOPIC)-1) == 0) {
+			char topic[32] = {0};
+			// In case I somehow mess up and send just topic greenhouse/control
+			if (event->topic[0] != 0) {
+				strncpy(topic, event->topic+(sizeof(GREENHOUSE_CONTROL_TOPIC)), 31);
+			}
+			topic[31] = 0;
+			if (_gc != nullptr) {
+				_gc->receive_message(topic, event->data);
+			}
+			else {
+				printf("Greenhouse topic, but no Greenhouse :(");
+			}
+		}
+
 		//printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
 		//printf("DATA=%.*s\r\n", event->data_len, event->data);
 		break;
@@ -224,4 +244,8 @@ int mqtt_unsubscribe(const char *topic) {
 	int msg_id = esp_mqtt_client_unsubscribe(mqtt_client, topic);
 	ESP_LOGI(TAG, "sent unsubscribe successful, msg_id=%d", msg_id);
 	return msg_id;
+}
+
+void register_greenhouse(GreenhouseController *gc) {
+	_gc = gc;
 }
