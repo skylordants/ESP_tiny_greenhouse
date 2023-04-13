@@ -9,7 +9,6 @@ public:
 	/// @param empty_level For my switch, if connected to bottom, then 0, if at top, then 1
 	WaterLevelSensor(int pin, uint8_t empty_level);
 	WaterLevelSensor();
-	~WaterLevelSensor();
 
 	bool IsEmpty();
 	bool IsFull();

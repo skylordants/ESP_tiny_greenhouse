@@ -65,7 +65,7 @@ bool CapacitiveMoistureSensor::measure() {
 	//ESP_LOGI(TAG, "ADC%d Channel[%d] Raw Data: %d", _init_config.unit_id + 1, _channel, _adc_raw[0]);
 	if (_do_calibration) {
 		ESP_ERROR_CHECK(adc_cali_raw_to_voltage(_adc_cali_handle, _adc_raw[0], &_voltage[0]));
-		ESP_LOGI(TAG, "ADC%d Channel[%d] Cali Voltage: %d mV", _init_config.unit_id + 1, _channel, _voltage[0]);
+		//ESP_LOGI(TAG, "ADC%d Channel[%d] Cali Voltage: %d mV", _init_config.unit_id + 1, _channel, _voltage[0]);
 	}
 
 	return true;

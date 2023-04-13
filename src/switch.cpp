@@ -6,6 +6,7 @@ Switch::Switch(int pin)
 	, _pin(pin)
 {
 	ESP_ERROR_CHECK(gpio_config(&_io_config));
+	turn_off();
 }
 
 Switch::Switch() {
@@ -14,8 +15,25 @@ Switch::Switch() {
 
 void Switch::turn_on() {
 	ESP_ERROR_CHECK(gpio_set_level((gpio_num_t) _pin, 1));
+	_on = true;
 }
 
 void Switch::turn_off() {
 	ESP_ERROR_CHECK(gpio_set_level((gpio_num_t) _pin, 0));
+	_on = false;
+}
+
+bool Switch::is_on() {
+	return _on;
+}
+
+void Switch::set_state(bool state) {
+	if (is_on() != state) {
+		if (state) {
+			turn_on();
+		}
+		else {
+			turn_off();
+		}
+	}
 }

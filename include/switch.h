@@ -1,5 +1,5 @@
 #ifndef __SWITCH_H__
-#define __SWITCH_H_
+#define __SWITCH_H__
 
 #include "driver\gpio.h"
 
@@ -10,6 +10,9 @@ public:
 
 	void turn_on();
 	void turn_off();
+	void set_state(bool state);
+
+	bool is_on();
 
 private:
 	gpio_config_t _io_config;
