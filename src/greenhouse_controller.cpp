@@ -27,10 +27,13 @@ GreenhouseController::GreenhouseController()
 }
 
 bool GreenhouseController::receive_message(const char *topic, const char *data) {
-	if (strcmp(topic, "override/pump") == 0) {
-		_override_pump = data[0] == '1';
-	} else if (strcmp(topic, "override/led") == 0) {
-		_override_led = data[0] == '1';
+	if (strncmp(topic, "override", 8) == 0) {
+		// Override certain controls
+		if (strcmp(topic+8, "/pump") == 0) {
+			_override_pump = data[0] == '1';
+		} else if (strcmp(topic+8, "/led") == 0) {
+			_override_led = data[0] == '1';
+		}
 	} else if (strcmp(topic, "pump") == 0) {
 		_override_pump_value = data[0] == '1';
 	} else if (strcmp(topic, "led") == 0) {
