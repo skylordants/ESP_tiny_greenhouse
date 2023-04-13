@@ -24,6 +24,7 @@ GreenhouseController::GreenhouseController()
 
 	mqtt_subscribe("greenhouse/control/#");
 	register_greenhouse(this);
+	report_state();
 }
 
 bool GreenhouseController::receive_message(const char *topic, const char *data) {
@@ -42,6 +43,8 @@ bool GreenhouseController::receive_message(const char *topic, const char *data) 
 		printf("Unknown greenhouse topic %s , data %s\n", topic, data);
 		return false;
 	}
+
+	report_state();
 	return true;
 }
 
@@ -66,9 +69,6 @@ void GreenhouseController::report() {
 	report_int(_pump.is_on(), "greenhouse/measurements/pump");
 	report_int(_led_relay.is_on(), "greenhouse/measurements/led");
 
-
-
-
 	// Report time
 	char buf[64];
 	time_t now;
@@ -78,6 +78,15 @@ void GreenhouseController::report() {
 	strftime(buf, sizeof(buf), "%c", &timeinfo);
 
 	mqtt_publish("greenhouse/report_time", buf, 1);
+}
+
+void GreenhouseController::report_state() {
+	// Report settings state
+	report_int(_override_led, "greenhouse/state/override/led");
+	report_int(_override_pump, "greenhouse/state/override/pump");
+	report_int(_override_led_value, "greenhouse/state/led");
+	report_int(_override_pump_value, "greenhouse/state/pump");
+
 }
 
 void GreenhouseController::report_int(int value, const char *topic) {
