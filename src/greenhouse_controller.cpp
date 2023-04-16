@@ -9,6 +9,7 @@
 
 #include <time.h>
 #include <string.h>
+#include <string>
 
 GreenhouseController::GreenhouseController()
 	: _led_relay(RELAY_CONTROL_PIN)
@@ -19,6 +20,9 @@ GreenhouseController::GreenhouseController()
 	, _override_pump_value(false)
 	, _override_led(false)
 	, _override_led_value(false)
+	, _moisture_threshold(1500)
+	, _led_start(8*3600)
+	, _led_end(18*3600)
 {
 	xTaskCreate(main_loop, "greenhouse_loop", 8192, this, 5, NULL);
 
@@ -36,6 +40,25 @@ bool GreenhouseController::receive_message(const std::string &topic, const std::
 			_override_pump = data[0] == '1';
 		} else if (subtopic == "led") {
 			_override_led = data[0] == '1';
+		} else {
+			printf("Unknown greenhouse control topic %s , data %s\n", topic.c_str(), data.c_str());
+			return false;
+		}
+	} else if (topic.starts_with("automatic/")) {
+		std::string subtopic {topic, 10};
+		// Automatics settings
+		if (subtopic == "led_start") {
+			long time = string_to_time(data);
+			if (time != -1) {
+				_led_start = time;
+			}
+		} else if (subtopic == "led_end") {
+			long time = string_to_time(data);
+			if (time != -1) {
+				_led_end = time;
+			}
+		} else if (subtopic == "moisture_threshold") {
+			_moisture_threshold = std::stoi(data);
 		} else {
 			printf("Unknown greenhouse control topic %s , data %s\n", topic.c_str(), data.c_str());
 			return false;
@@ -91,7 +114,14 @@ void GreenhouseController::report_state() {
 	report_int(_override_pump, "greenhouse/state/override/pump");
 	report_int(_override_led_value, "greenhouse/state/led");
 	report_int(_override_pump_value, "greenhouse/state/pump");
+	
+	report_int(_moisture_threshold, "greenhouse/state/automatic/moisture_threshold");
 
+	char buf[7]; // 6 digits and a null byte
+	time_to_string(_led_start, buf);
+	mqtt_publish("greenhouse/state/automatic/led_start", buf, 1);
+	time_to_string(_led_end, buf);
+	mqtt_publish("greenhouse/state/automatic/led_end", buf, 1);
 }
 
 void GreenhouseController::report_int(int value, const char *topic) {
@@ -118,4 +148,20 @@ void GreenhouseController::control_pump() {
 	else {
 		// Automatic based on soil moisture
 	}
+}
+
+// Buf must be at least 7 chars long
+void GreenhouseController::time_to_string(unsigned long t, char *buf) {
+	sprintf(buf, "%02lu%02lu%02lu", t/3600%24, t/60%60, t%60);
+}	
+
+unsigned long GreenhouseController::string_to_time(const std::string &str) {
+	if (str.size() != 6) {
+		printf("Wrong length for time, possibly due to mqtt handling errors");
+		return -1;
+	}
+
+	long temp = std::stol(str);
+	unsigned long t = temp%100 + temp/100%100*60 + temp/10000%24*3600;
+	return t;
 }
