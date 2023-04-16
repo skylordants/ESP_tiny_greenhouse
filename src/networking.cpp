@@ -1,5 +1,3 @@
-#include "networking.h"
-
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -29,25 +27,30 @@
 
 #include "mqtt_client.h"
 
+#include "networking.h"
 
+
+// WiFi settings
 #define ESP_WIFI_SSID      "campusnet"
 #define ESP_WIFI_PASS      ""
 #define ESP_MAXIMUM_RETRY  5
 #define ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_OPEN
 
-
+// SNTP settings
 #define SNTP_SERVER "ee.pool.ntp.org"
 
-
+// MQTT settings
 #define MQTT_SERVER "mqtt://g4.yt"
 #define MQTT_USER "greenhouse"
 #define MQTT_PASS "greenhouse"
 
+
 static const char GREENHOUSE_CONTROL_TOPIC[] = "greenhouse/control/";
+static GreenhouseController *_gc;
+
 
 static const char *TAG = "NETWORKING";
 
-static GreenhouseController *_gc;
 
 void init_networking() {
 	ESP_ERROR_CHECK( nvs_flash_init() );
@@ -145,8 +148,8 @@ void init_wifi() {
 }
 
 
-// SNTP STUFF
 
+// SNTP STUFF
 
 void init_sntp() {
 	ESP_LOGI(TAG, "Initializing and starting SNTP");
@@ -160,12 +163,12 @@ void init_sntp() {
 }
 
 
+
 // MQTT STUFF
 
 static esp_mqtt_client_handle_t mqtt_client;
 
 static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data) {
-	ESP_LOGD(TAG, "Event dispatched from event loop base=%s, event_id=%ld", base, event_id);
 	esp_mqtt_event_handle_t event = static_cast<esp_mqtt_event_handle_t>(event_data);
 	switch (static_cast<esp_mqtt_event_id_t>(event_id)) {
 	case MQTT_EVENT_CONNECTED:
@@ -180,12 +183,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 	case MQTT_EVENT_UNSUBSCRIBED:
 		ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
 		break;
-	case MQTT_EVENT_PUBLISHED:
-		//ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
-		break;
 	case MQTT_EVENT_DATA:
-		//ESP_LOGI(TAG, "MQTT_EVENT_DATA");
-
 		// Greenhouse control data topic begins with "greenhouse/control/"
 		if (strncmp(event->topic, GREENHOUSE_CONTROL_TOPIC, sizeof(GREENHOUSE_CONTROL_TOPIC)-1) == 0) {
 			std::string topic {event->topic+(sizeof(GREENHOUSE_CONTROL_TOPIC)-1), static_cast<unsigned int>(event->topic_len-sizeof(GREENHOUSE_CONTROL_TOPIC)+1)};
@@ -194,12 +192,12 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 				_gc->receive_message(topic, data);
 			}
 			else {
-				printf("Greenhouse topic, but no Greenhouse :(");
+				printf("Greenhouse topic, but no Greenhouse :(\n");
 			}
 		}
-
-		//printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
-		//printf("DATA=%.*s\r\n", event->data_len, event->data);
+		else {
+			printf("Unknown MQTT data???\n");
+		}
 		break;
 	case MQTT_EVENT_ERROR:
 		ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
@@ -208,7 +206,6 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 		}
 		break;
 	default:
-		ESP_LOGI(TAG, "Other event id:%d", event->event_id);
 		break;
 	}
 }
@@ -226,19 +223,16 @@ void init_mqtt() {
 
 int mqtt_publish(const char *topic, const char *data, int retain, int qos, int len) {
 	int msg_id =  esp_mqtt_client_publish(mqtt_client, topic, data, len, qos, retain);
-	//ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
 	return msg_id;
 }
 
 int mqtt_subscribe(const char *topic, int qos) {
 	int msg_id = esp_mqtt_client_subscribe(mqtt_client, topic, qos);
-	ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
 	return msg_id;
 }
 
 int mqtt_unsubscribe(const char *topic) {
 	int msg_id = esp_mqtt_client_unsubscribe(mqtt_client, topic);
-	ESP_LOGI(TAG, "sent unsubscribe successful, msg_id=%d", msg_id);
 	return msg_id;
 }
 
