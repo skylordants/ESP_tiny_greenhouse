@@ -137,6 +137,19 @@ void GreenhouseController::control_led() {
 	}
 	else {
 		// Automatic based on time
+		time_t now;
+    	struct tm timeinfo;
+		time(&now);
+		localtime_r(&now, &timeinfo);
+
+		unsigned long currtime = timeinfo.tm_sec + timeinfo.tm_min*60 + timeinfo.tm_hour*3600;
+
+		if (_led_start <= currtime && currtime <= _led_end) {
+			_led_relay.set_state(true);
+		}
+		else {
+			_led_relay.set_state(false);
+		}
 	}
 }
 
@@ -147,6 +160,13 @@ void GreenhouseController::control_pump() {
 	}
 	else {
 		// Automatic based on soil moisture
+		if (_water_level.IsFull() && _soil_moisture.getVoltage() > _moisture_threshold) {
+			// We have water and the soil is too dry
+			_pump.set_state(true);
+		}
+		else {
+			_pump.set_state(false);
+		}
 	}
 }
 
