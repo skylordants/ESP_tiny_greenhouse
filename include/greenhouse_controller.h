@@ -1,6 +1,8 @@
 #ifndef __GREENHOUSE_CONTROLLER_H__
 #define __GREENHOUSE_CONTROLLER_H__
 
+#include <string>
+
 #include "switch.h"
 #include "water_level.h"
 #include "soil_moisture.h"
@@ -9,7 +11,7 @@ class GreenhouseController {
 public:
 	GreenhouseController();
 
-	bool receive_message(const char *topic, const char *data);
+	bool receive_message(const std::string &topic, const std::string &data);
 
 private:
 	Switch _led_relay;

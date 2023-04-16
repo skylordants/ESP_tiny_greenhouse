@@ -27,20 +27,25 @@ GreenhouseController::GreenhouseController()
 	report_state();
 }
 
-bool GreenhouseController::receive_message(const char *topic, const char *data) {
-	if (strncmp(topic, "override", 8) == 0) {
+bool GreenhouseController::receive_message(const std::string &topic, const std::string &data) {
+	printf("Topic: %s , data: %s\n", topic.c_str(), data.c_str()); // Use printf and .c_str() instead of std::cout, cause iostream took 20% of flash 
+	if (topic.starts_with("override/")) {
 		// Override certain controls
-		if (strcmp(topic+8, "/pump") == 0) {
+		std::string subtopic = {topic, 9};
+		if (subtopic == "pump") {
 			_override_pump = data[0] == '1';
-		} else if (strcmp(topic+8, "/led") == 0) {
+		} else if (subtopic == "led") {
 			_override_led = data[0] == '1';
+		} else {
+			printf("Unknown greenhouse control topic %s , data %s\n", topic.c_str(), data.c_str());
+			return false;
 		}
-	} else if (strcmp(topic, "pump") == 0) {
+	} else if (topic == "pump") {
 		_override_pump_value = data[0] == '1';
-	} else if (strcmp(topic, "led") == 0) {
+	} else if (topic == "led") {
 		_override_led_value = data[0] == '1';
 	} else {
-		printf("Unknown greenhouse topic %s , data %s\n", topic, data);
+		printf("Unknown greenhouse control topic %s , data %s\n", topic.c_str(), data.c_str());
 		return false;
 	}
 

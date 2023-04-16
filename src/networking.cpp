@@ -43,7 +43,7 @@
 #define MQTT_USER "greenhouse"
 #define MQTT_PASS "greenhouse"
 
-static const char GREENHOUSE_CONTROL_TOPIC[] = "greenhouse/control";
+static const char GREENHOUSE_CONTROL_TOPIC[] = "greenhouse/control/";
 
 static const char *TAG = "NETWORKING";
 
@@ -186,16 +186,12 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 	case MQTT_EVENT_DATA:
 		//ESP_LOGI(TAG, "MQTT_EVENT_DATA");
 
-		// Greenhouse control data
+		// Greenhouse control data topic begins with "greenhouse/control/"
 		if (strncmp(event->topic, GREENHOUSE_CONTROL_TOPIC, sizeof(GREENHOUSE_CONTROL_TOPIC)-1) == 0) {
-			char topic[32] = {0};
-			// In case I somehow mess up and send just topic greenhouse/control
-			if (event->topic[0] != 0) {
-				strncpy(topic, event->topic+(sizeof(GREENHOUSE_CONTROL_TOPIC)), 31);
-			}
-			topic[31] = 0;
+			std::string topic {event->topic+(sizeof(GREENHOUSE_CONTROL_TOPIC)-1), static_cast<unsigned int>(event->topic_len-sizeof(GREENHOUSE_CONTROL_TOPIC)+1)};
+			std::string data {event->data, static_cast<unsigned int>(event->data_len)};
 			if (_gc != nullptr) {
-				_gc->receive_message(topic, event->data);
+				_gc->receive_message(topic, data);
 			}
 			else {
 				printf("Greenhouse topic, but no Greenhouse :(");
