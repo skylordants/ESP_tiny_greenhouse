@@ -159,6 +159,7 @@ void GreenhouseController::control_pump() {
 		_pump.set_state(_override_pump_value);
 	}
 	else {
+		_soil_moisture.measure();
 		// Automatic based on soil moisture
 		if (_water_level.IsFull() && _soil_moisture.getVoltage() > _moisture_threshold) {
 			// We have water and the soil is too dry
